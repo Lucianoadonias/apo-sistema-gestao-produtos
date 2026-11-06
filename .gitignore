@@ -1,0 +1,27 @@
+# Configurações locais e segredos
+.env
+.env.*
+!.env.example
+config/local.php
+
+# Dependências, caso utilizadas
+/vendor/
+/node_modules/
+
+# Arquivos temporários e logs
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Configurações de editores
+.vscode/
+.idea/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Dados temporários
+/tmp/
+/cache/
