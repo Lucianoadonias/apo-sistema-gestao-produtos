@@ -29,4 +29,22 @@ class UserRepository
 
         return (int) $this->connection->lastInsertId();
     }
+
+    public function findByEmail(string $email): ?array
+    {
+        $sql = "SELECT id, nome, email, senha
+            FROM usuarios
+            WHERE email = :email
+            LIMIT 1";
+
+        $statement = $this->connection->prepare($sql);
+
+        $statement->execute([
+        'email' => $email
+        ]);
+
+        $usuario = $statement->fetch();
+
+        return $usuario === false ? null : $usuario;
+    }
 }
