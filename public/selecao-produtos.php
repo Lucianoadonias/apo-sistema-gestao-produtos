@@ -191,6 +191,9 @@ $quantidadeCesta = count($_SESSION['cesta_produtos']['ids']);
                                 <?= $quantidadeCesta ?>
                             </span>
                         </p>
+                        <a href="cesta.php" class="btn btn-outline-primary mb-4">
+                            Visualizar cesta
+                        </a>
 
                         <?php if ($erro !== ''): ?>
                         <div class="alert alert-danger">
