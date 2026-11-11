@@ -389,6 +389,17 @@ try {
                                                 data-fornecedor-id="<?= (int) $produto['fornecedor_id'] ?>">
                                                 Editar
                                             </button>
+
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger btn-excluir-produto"
+                                                data-id="<?= (int) $produto['id'] ?>" data-nome="<?= htmlspecialchars(
+                                                    $produto['nome'],
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>">
+                                                Excluir
+                                            </button>
+
                                         </td>
 
                                     </tr>
@@ -558,6 +569,87 @@ try {
         } finally {
             botaoSalvar.disabled = false;
         }
+    });
+
+
+    // Localiza todos os botões Excluir da tabela.
+    const botoesExcluirProduto = document.querySelectorAll(
+        '.btn-excluir-produto'
+    );
+
+    botoesExcluirProduto.forEach((botao) => {
+        botao.addEventListener('click', async () => {
+
+            const id = botao.dataset.id;
+            const nome = botao.dataset.nome;
+
+            // Solicita confirmação antes de excluir.
+            const confirmado = confirm(
+                `Deseja realmente excluir o produto "${nome}"?`
+            );
+
+            // Cancelar encerra a operação sem acessar o servidor.
+            if (!confirmado) {
+                return;
+            }
+
+            // Recupera o token do formulário de edição.
+            const token = document.querySelector(
+                '#form-editar-produto input[name="csrf_token"]'
+            ).value;
+
+            // Prepara os dados que serão enviados ao PHP.
+            const dados = new FormData();
+
+            dados.append('id', id);
+            dados.append('csrf_token', token);
+
+            // Impede cliques repetidos durante a requisição.
+            botao.disabled = true;
+
+            try {
+                const resposta = await fetch('excluir-produto.php', {
+                    method: 'POST',
+                    body: dados
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro || 'Erro ao excluir produto.'
+                    );
+                }
+
+                // Localiza a linha antes de removê-la.
+                const linha = botao.closest('tr');
+
+                // Remove somente a linha confirmada pelo servidor.
+                linha.remove();
+
+                // Se a edição estava aberta para esse produto,
+                // fecha o formulário de edição.
+                const idEmEdicao = document.getElementById(
+                    'editar-produto-id'
+                ).value;
+
+                if (idEmEdicao === id) {
+                    formularioEdicao.reset();
+
+                    secaoEdicao.classList.add('d-none');
+                    secaoCadastro.classList.remove('d-none');
+                }
+
+                // Exibe o resultado retornado pelo PHP.
+                alert(resultado.mensagem);
+
+            } catch (erro) {
+                alert(erro.message);
+
+            } finally {
+                botao.disabled = false;
+            }
+        });
     });
     </script>
 

@@ -140,4 +140,17 @@ public function update(
     );
 }
 
+public function delete(int $id): bool
+{
+    // Um identificador deve ser um inteiro positivo.
+    if ($id <= 0) {
+        throw new InvalidArgumentException(
+            'ID do produto inválido.'
+        );
+    }
+
+    // Encaminha a exclusão ao Repository.
+    return $this->repository->delete($id);
+}
+
 }

@@ -111,4 +111,18 @@ public function update(
     ]);
 }
 
+public function delete(int $id): bool
+{
+    $sql = "DELETE FROM produtos
+            WHERE id = :id";
+
+    $statement = $this->connection->prepare($sql);
+
+    $statement->execute([
+        'id' => $id
+    ]);
+
+    return $statement->rowCount() > 0;
+}
+
 }
