@@ -71,4 +71,44 @@ public function findAll(): array
     return $statement->fetchAll();
 }
 
+public function findById(int $id): ?array
+{
+    $sql = "SELECT id, nome, descricao, preco, fornecedor_id
+            FROM produtos
+            WHERE id = :id
+            LIMIT 1";
+
+    $statement = $this->connection->prepare($sql);
+    $statement->execute(['id' => $id]);
+
+    $produto = $statement->fetch();
+
+    return $produto === false ? null : $produto;
+}
+
+public function update(
+    int $id,
+    string $nome,
+    string $descricao,
+    string $preco,
+    int $fornecedorId
+): void {
+    $sql = "UPDATE produtos
+            SET nome = :nome,
+                descricao = :descricao,
+                preco = :preco,
+                fornecedor_id = :fornecedor_id
+            WHERE id = :id";
+
+    $statement = $this->connection->prepare($sql);
+
+    $statement->execute([
+        'id' => $id,
+        'nome' => $nome,
+        'descricao' => $descricao,
+        'preco' => $preco,
+        'fornecedor_id' => $fornecedorId
+    ]);
+}
+
 }
