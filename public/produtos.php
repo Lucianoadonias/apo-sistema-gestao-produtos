@@ -129,7 +129,7 @@ try {
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
 
-                <div class="card shadow-sm">
+                <div id="secao-cadastro-produto" class="card shadow-sm">
                     <div class="card-body p-4">
 
                         <h1 class="h4 mb-4">
@@ -226,6 +226,90 @@ try {
                     </div>
                 </div>
 
+                <!-- Formulário de edição: oculto inicialmente -->
+                <div id="secao-edicao-produto" class="card shadow-sm mt-4 d-none">
+
+                    <div class="card-body p-4">
+
+                        <h2 class="h5 mb-3">Editar produto</h2>
+
+                        <form id="form-editar-produto">
+
+                            <input type="hidden" id="editar-produto-id" name="id">
+
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(
+                    $_SESSION['csrf_token'],
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) ?>">
+
+                            <div class="mb-3">
+                                <label for="editar-produto-nome" class="form-label">
+                                    Nome
+                                </label>
+
+                                <input type="text" id="editar-produto-nome" name="nome" class="form-control"
+                                    maxlength="150" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editar-produto-descricao" class="form-label">
+                                    Descrição
+                                </label>
+
+                                <textarea id="editar-produto-descricao" name="descricao" class="form-control" rows="3"
+                                    required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editar-produto-preco" class="form-label">
+                                    Preço (R$)
+                                </label>
+
+                                <input type="number" id="editar-produto-preco" name="preco" class="form-control"
+                                    min="0.01" max="99999999.99" step="0.01" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editar-produto-fornecedor" class="form-label">
+                                    Fornecedor
+                                </label>
+
+                                <select id="editar-produto-fornecedor" name="fornecedor_id" class="form-select"
+                                    required>
+                                    <option value="">Selecione um fornecedor</option>
+
+                                    <?php foreach ($fornecedores as $fornecedor): ?>
+                                    <option value="<?= (int) $fornecedor['id'] ?>">
+                                        <?= htmlspecialchars(
+                                $fornecedor['nome'],
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    Salvar alterações
+                                </button>
+
+                                <button type="button" id="cancelar-edicao-produto" class="btn btn-secondary">
+                                    Cancelar
+                                </button>
+                            </div>
+
+                            <div id="mensagem-edicao-produto" class="mt-3" role="status" aria-live="polite"></div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
                 <!-- Listagem de produtos -->
                 <div class="card shadow-sm mt-4">
 
@@ -253,6 +337,7 @@ try {
                                         <th>Descrição</th>
                                         <th>Preço</th>
                                         <th>Fornecedor</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
 
@@ -293,6 +378,19 @@ try {
                                         'UTF-8'
                                     ) ?>
                                         </td>
+
+                                        <td>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary btn-editar-produto"
+                                                data-id="<?= (int) $produto['id'] ?>"
+                                                data-nome="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-descricao="<?= htmlspecialchars($produto['descricao'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-preco="<?= htmlspecialchars((string) $produto['preco'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-fornecedor-id="<?= (int) $produto['fornecedor_id'] ?>">
+                                                Editar
+                                            </button>
+                                        </td>
+
                                     </tr>
 
                                     <?php endforeach; ?>
@@ -312,6 +410,156 @@ try {
             </div>
         </div>
     </main>
+
+    <script>
+    const secaoCadastro = document.getElementById(
+        'secao-cadastro-produto'
+    );
+
+    const secaoEdicao = document.getElementById(
+        'secao-edicao-produto'
+    );
+
+    const formularioEdicao = document.getElementById(
+        'form-editar-produto'
+    );
+
+    const mensagem = document.getElementById(
+        'mensagem-edicao-produto'
+    );
+
+    // Abre o formulário de edição com os dados selecionados.
+    document.querySelectorAll('.btn-editar-produto')
+        .forEach((botao) => {
+
+            botao.addEventListener('click', () => {
+                const dados = botao.dataset;
+
+                document.getElementById('editar-produto-id').value =
+                    dados.id;
+
+                document.getElementById('editar-produto-nome').value =
+                    dados.nome;
+
+                document.getElementById('editar-produto-descricao').value =
+                    dados.descricao;
+
+                document.getElementById('editar-produto-preco').value =
+                    dados.preco;
+
+                document.getElementById('editar-produto-fornecedor').value =
+                    dados.fornecedorId;
+
+                mensagem.textContent = '';
+                mensagem.className = 'mt-3';
+
+                secaoCadastro.classList.add('d-none');
+                secaoEdicao.classList.remove('d-none');
+
+                secaoEdicao.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+
+    // Cancela a edição sem modificar o produto.
+    document.getElementById('cancelar-edicao-produto')
+        .addEventListener('click', () => {
+
+            formularioEdicao.reset();
+            secaoEdicao.classList.add('d-none');
+            secaoCadastro.classList.remove('d-none');
+
+            mensagem.textContent = '';
+            mensagem.className = 'mt-3';
+        });
+
+    // Salva as alterações utilizando AJAX.
+    formularioEdicao.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+
+        const dados = new FormData(formularioEdicao);
+        const botaoSalvar = formularioEdicao.querySelector(
+            'button[type="submit"]'
+        );
+
+        mensagem.textContent = '';
+        mensagem.className = 'mt-3';
+        botaoSalvar.disabled = true;
+
+        try {
+            const resposta = await fetch('atualizar-produto.php', {
+                method: 'POST',
+                body: dados
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro || 'Erro ao atualizar produto.'
+                );
+            }
+
+            // Encontra o botão do produto atualizado.
+            const id = String(dados.get('id'));
+
+            const botaoEditar = [
+                ...document.querySelectorAll('.btn-editar-produto')
+            ].find((botao) => botao.dataset.id === id);
+
+            if (botaoEditar) {
+                const linha = botaoEditar.closest('tr');
+                const celulas = linha.querySelectorAll('td');
+
+                const nome = String(dados.get('nome')).trim();
+                const descricao = String(dados.get('descricao')).trim();
+                const preco = Number(
+                    String(dados.get('preco')).replace(',', '.')
+                );
+
+                const fornecedorSelect = document.getElementById(
+                    'editar-produto-fornecedor'
+                );
+
+                const fornecedorId = fornecedorSelect.value;
+
+                const fornecedorNome =
+                    fornecedorSelect.selectedOptions[0].textContent.trim();
+
+                // Atualiza a tabela sem recarregar a página.
+                celulas[0].textContent = nome;
+                celulas[1].textContent = descricao;
+
+                celulas[2].textContent = preco.toLocaleString(
+                    'pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    }
+                );
+
+                celulas[3].textContent = fornecedorNome;
+
+                // Mantém os dados do botão Editar atualizados.
+                botaoEditar.dataset.nome = nome;
+                botaoEditar.dataset.descricao = descricao;
+                botaoEditar.dataset.preco = preco.toFixed(2);
+                botaoEditar.dataset.fornecedorId = fornecedorId;
+            }
+
+            mensagem.textContent = resultado.mensagem;
+            mensagem.classList.add('alert', 'alert-success');
+
+        } catch (erro) {
+            mensagem.textContent = erro.message;
+            mensagem.classList.add('alert', 'alert-danger');
+
+        } finally {
+            botaoSalvar.disabled = false;
+        }
+    });
+    </script>
 
 </body>
 
